@@ -1,6 +1,7 @@
 import { Props, Key, Ref } from 'shared/ReactTypes'
 import { WorkTag } from './workTags'
 import { Flags, NoFlags } from './fiberFlags'
+import { Container } from 'hostConfig'
 
 export class FiberNode {
   type: any // 对应组件的类型，可以是函数、类、字符串等
@@ -16,8 +17,10 @@ export class FiberNode {
   index: number // 用于标识当前元素在其父节点的子节点列表中的位置索引
 
   memoizedProps: Props | null // 保存组件实例当前属性（props）的字段
+  memorizedState: any
   alternate: FiberNode | null // 用于双缓冲技术，指向上一次更新的 Fiber 节点
   flags: Flags // 保存有关组件状态和其他信息的标志位的字段
+  updateQueue: unknown
 
   constructor(tag: WorkTag, pendingProps: Props, key: Key) {
     // 实例
@@ -37,9 +40,51 @@ export class FiberNode {
     // 作为工作单元
     this.pendingProps = pendingProps
     this.memoizedProps = null
+    this.memorizedState = null
+    this.updateQueue = null
 
     this.alternate = null
     // 副作用
     this.flags = NoFlags
   }
+}
+
+export class FiberRootNode {
+  container: Container
+  current: FiberNode
+  finishedWork: FiberNode | null
+  constructor(container: Container, hostRootFiber: FiberNode) {
+    this.container = container
+    this.current = hostRootFiber
+    hostRootFiber.stateNode = this
+    this.finishedWork = null
+  }
+}
+
+export const createWorkInProgress = (
+  current: FiberNode,
+  pendingProps: Props,
+): FiberNode => {
+  let wip = current.alternate
+  if (wip === null) {
+    // mount
+    wip = new FiberNode(current.tag, pendingProps, current.key)
+    wip.type = current.type
+    wip.stateNode = current.stateNode
+
+    wip.alternate = current
+    current.alternate = wip
+  } else {
+    // update
+    wip.pendingProps = pendingProps
+    wip.flags = NoFlags
+  }
+
+  wip.type = current.type
+  wip.updateQueue = current.updateQueue
+  wip.child = current.child
+  wip.memorizedState = current.memorizedState
+  wip.memoizedProps = current.memoizedProps
+
+  return wip
 }

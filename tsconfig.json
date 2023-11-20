@@ -1,5 +1,7 @@
 {
-  "include": ["packages"],
+  "include": [
+    "packages"
+  ],
   "compilerOptions": {
     "target": "ES2020",
     "module": "ESNext",
@@ -19,7 +21,18 @@
     "sourceMap": true,
     "isolatedModules": true,
     "baseUrl": "./packages",
-    "lib": ["ESNext", "DOM", "DOM.Iterable"]
+    "paths": {
+      "hostConfig": [
+        "./react-reconciler/src/hostConfig.ts"
+      ]
+    },
+    "lib": [
+      "ESNext",
+      "DOM",
+      "DOM.Iterable"
+    ]
   },
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }
